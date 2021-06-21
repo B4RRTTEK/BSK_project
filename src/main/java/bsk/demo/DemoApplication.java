@@ -22,10 +22,11 @@ public class DemoApplication extends  JFrame implements ActionListener {
     private ButtonGroup radioGroup;
     private JButton fileButton;
     private JButton sendButton;
+    private JTextField textField;
+    private static ChatUser user = null;
 
     public DemoApplication()
     {
-
 
         setLocation(200,200);
         setSize(500,300);
@@ -38,9 +39,9 @@ public class DemoApplication extends  JFrame implements ActionListener {
         fileButton.addActionListener(this);
 
 
-        JTextField text = new JTextField("");
-        text.setBounds(30,20,300,40);
-        add(text);
+        textField = new JTextField("");
+        textField.setBounds(30,20,300,40);
+        add(textField);
 
         sendButton = new JButton("Wyślij");
         sendButton.setBounds(30,80,150,20);
@@ -69,8 +70,9 @@ public class DemoApplication extends  JFrame implements ActionListener {
         Object source = e.getSource();
 
         if(source == sendButton) {
-            JOptionPane.showMessageDialog(this,
-                    "Wysłano.");
+            String message = textField.getText();
+            user.sendMessage(message);
+            JOptionPane.showMessageDialog(this,"Wysłano.");
         }
 
         if(source == fileButton) {
@@ -117,6 +119,30 @@ public class DemoApplication extends  JFrame implements ActionListener {
     }
     public static void main(String[] args) throws NoSuchAlgorithmException {
 
+        System.out.println("server/client?");
+        Scanner in = new Scanner(System.in);
+        String resp = in.nextLine();
+
+        if(resp.equals("client")) {
+            ChatClient client = new ChatClient();
+            client.startConnection("127.0.0.1", 3333);
+            Thread t = new Thread(client);
+            t.start();
+            try {
+                Thread.sleep(5000);
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            client.sendMessage("test");
+            user = client;
+        } else if(resp.equals("server")) {
+            ChatServer server = new ChatServer();
+            server.start(3333);
+            Thread t = new Thread(server);
+            t.start();
+            user = server;
+        }
 
         generateRSA();
 

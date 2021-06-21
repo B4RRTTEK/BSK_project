@@ -20,6 +20,9 @@ import java.security.*;
 public class DemoApplication extends  JFrame implements ActionListener {
 
     private ButtonGroup radioGroup;
+    private JButton fileButton;
+    private JButton sendButton;
+
     public DemoApplication()
     {
 
@@ -29,15 +32,20 @@ public class DemoApplication extends  JFrame implements ActionListener {
         setTitle("Wysylanie pliku");
         setLayout(null);
 
-        JButton button = new JButton("Wybierz plik");
-        button.setBounds(30,80,150,20);
-        add(button);
-        button.addActionListener(this);
+        fileButton = new JButton("Wybierz plik");
+        fileButton.setBounds(30,120,150,20);
+        add(fileButton);
+        fileButton.addActionListener(this);
 
 
         JTextField text = new JTextField("");
         text.setBounds(30,20,300,40);
         add(text);
+
+        sendButton = new JButton("Wyślij");
+        sendButton.setBounds(30,80,150,20);
+        add(sendButton);
+        sendButton.addActionListener(this);
 
         radioGroup=new ButtonGroup();
         JRadioButton radio1 = new JRadioButton("ECB",true);
@@ -58,13 +66,22 @@ public class DemoApplication extends  JFrame implements ActionListener {
     }
     public void actionPerformed(ActionEvent e)
     {
-        File file;
-        Scanner fileIn;
-        int response;
-        JFileChooser chooser = new JFileChooser(".");
+        Object source = e.getSource();
 
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        response = chooser.showOpenDialog(null);
+        if(source == sendButton) {
+            JOptionPane.showMessageDialog(this,
+                    "Wysłano.");
+        }
+
+        if(source == fileButton) {
+            File file;
+            Scanner fileIn;
+            int response;
+            JFileChooser chooser = new JFileChooser(".");
+
+            chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            response = chooser.showOpenDialog(null);
+        }
     }
 
     public static void main(String[] args) throws NoSuchAlgorithmException {

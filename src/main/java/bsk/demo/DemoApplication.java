@@ -3,17 +3,17 @@ package bsk.demo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 import java.io.*;
-import java.util.List;
 import java.security.*;
 
 @SpringBootApplication
@@ -48,18 +48,18 @@ public class DemoApplication extends  JFrame implements ActionListener {
         sendButton.addActionListener(this);
 
         radioGroup=new ButtonGroup();
-        JRadioButton radio1 = new JRadioButton("ECB",true);
-        radio1.setBounds(50,180,100,20);
-        JRadioButton radio2 = new JRadioButton("CBC",true);
-        radio2.setBounds(50,200,100,20);
-        JRadioButton radio3 = new JRadioButton("CFB",true);
-        radio3.setBounds(50,220,100,20);
-        radioGroup.add(radio1);
-        radioGroup.add(radio2);
-        radioGroup.add(radio3);
-        add(radio1);
-        add(radio2);
-        add(radio3);
+        JRadioButton radio_ecb = new JRadioButton("ECB",true);
+        radio_ecb.setBounds(50,140,100,20);
+        JRadioButton radio_cbc = new JRadioButton("CBC",true);
+        radio_cbc.setBounds(50,160,100,20);
+        JRadioButton radio_cfb = new JRadioButton("CFB",true);
+        radio_cfb.setBounds(50,180,100,20);
+        radioGroup.add(radio_ecb);
+        radioGroup.add(radio_cbc);
+        radioGroup.add(radio_cfb);
+        add(radio_ecb);
+        add(radio_cbc);
+        add(radio_cfb);
 
 
 
@@ -84,14 +84,41 @@ public class DemoApplication extends  JFrame implements ActionListener {
         }
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-
+    public static void generateRSA() throws NoSuchAlgorithmException {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         KeyPair kp = kpg.generateKeyPair();
         Key pub = kp.getPublic();
         Key pvt = kp.getPrivate();
+        String encodedpub = Base64.getEncoder().encodeToString(pub.getEncoded());
+        String encodedpvt = Base64.getEncoder().encodeToString(pvt.getEncoded());
 
+
+
+        try (FileOutputStream fos = new FileOutputStream("keys/public/public.key")) {
+
+            fos.write(pub.getEncoded());
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try (FileOutputStream fos = new FileOutputStream("keys/private/private.key")) {
+
+            fos.write(pvt.getEncoded());
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+
+
+        generateRSA();
 
         DemoApplication okienko = new DemoApplication();
         okienko.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

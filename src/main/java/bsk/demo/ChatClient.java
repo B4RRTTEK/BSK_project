@@ -5,15 +5,22 @@ import java.io.*;
 
 public class ChatClient implements Runnable, ChatUser{
 
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private Socket textSocket;
+    private Socket fileSocket;
+    private PrintWriter outWriter;
+    private BufferedReader inReader;
+    private final static int FILE_SIZE = 6022386;
+    private FileOutputStream fos = null;
+    private BufferedOutputStream bos = null;
+    private int current = 0;
+    private int bytesRead ;
 
-    public void startConnection(String ip, int port) {
+    public void startConnection(String ip, int textport, int fileport) {
         try {
-            clientSocket = new Socket(ip, port);
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            textSocket = new Socket(ip, textport);
+            fileSocket = new Socket(ip, fileport);
+            outWriter = new PrintWriter(textSocket.getOutputStream(), true);
+            inReader = new BufferedReader(new InputStreamReader(textSocket.getInputStream()));
         }
         catch(Exception e) {
             System.out.println(e.getMessage());
@@ -22,14 +29,33 @@ public class ChatClient implements Runnable, ChatUser{
     }
 
     public void sendMessage(String msg) {
-        out.println(msg);
+        outWriter.println(msg);
+    }
+
+    public void sendFile(File file) {
+        try {
+            // Get the size of the file
+            long length = file.length();
+            byte[] bytes = new byte[50 * 1024];
+            InputStream in = new FileInputStream(file);
+            OutputStream out = fileSocket.getOutputStream();
+            outWriter.println("wysylamplik123" + file.getName());
+
+            int count;
+            while ((count = in.read(bytes)) > 0) {
+                out.write(bytes, 0, count);
+            }
+        }
+        catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public void stopConnection() {
         try {
-            in.close();
-            out.close();
-            clientSocket.close();
+            inReader.close();
+            outWriter.close();
+            textSocket.close();
         }
         catch(Exception e) {
             System.out.println(e.getMessage());
@@ -40,9 +66,29 @@ public class ChatClient implements Runnable, ChatUser{
     public void run() {
         try {
             String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                JOptionPane.showMessageDialog(null, inputLine);
-                out.flush();
+            while ((inputLine = inReader.readLine()) != null) {
+                if(inputLine.contains("wysylamplik123")) {
+                    InputStream in = null;
+                    OutputStream out = null;
+                    System.out.println("Odbieranie pliku");
+
+                    in = fileSocket.getInputStream();
+
+                    String name = inputLine.substring(14);
+                    out = new FileOutputStream("E:/" + name);
+
+                    byte[] bytes = new byte[50*1024];
+
+                    int count;
+                    while ((count = in.read(bytes)) > 0) {
+                        out.write(bytes, 0, count);
+                    }
+                    out.close();
+                    in.close();
+                }
+                else{
+                    JOptionPane.showMessageDialog(null, inputLine);
+                }
             }
         }
         catch(Exception e) {

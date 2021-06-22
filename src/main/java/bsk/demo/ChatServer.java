@@ -5,18 +5,25 @@ import java.io.*;
 
 public class ChatServer implements Runnable, ChatUser{
 
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private ServerSocket serverTextSocket;
+    private ServerSocket serverFileSocket;
+    private Socket clientTextSocket;
+    private Socket clientFileSocket;
+    private PrintWriter outWriter;
+    private BufferedReader inReader;
+    private FileInputStream fis = null;
+    private BufferedInputStream bis = null;
+    private OutputStream os = null;
 
 
-    public void start(int port) {
+    public void start(int textPort, int filePort) {
         try {
-            serverSocket = new ServerSocket(port);
-            clientSocket = serverSocket.accept();
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            serverTextSocket = new ServerSocket(textPort);
+            serverFileSocket = new ServerSocket(filePort);
+            clientTextSocket = serverTextSocket.accept();
+            clientFileSocket = serverFileSocket.accept();
+            outWriter = new PrintWriter(clientTextSocket.getOutputStream(), true);
+            inReader = new BufferedReader(new InputStreamReader(clientTextSocket.getInputStream()));
         }
         catch(Exception e) {
             System.out.println(e.getMessage());
@@ -26,10 +33,10 @@ public class ChatServer implements Runnable, ChatUser{
 
     public void stop() {
         try {
-            in.close();
-            out.close();
-            clientSocket.close();
-            serverSocket.close();
+            inReader.close();
+            outWriter.close();
+            clientTextSocket.close();
+            serverTextSocket.close();
         }
         catch(Exception e) {
             System.out.println(e.getMessage());
@@ -37,15 +44,56 @@ public class ChatServer implements Runnable, ChatUser{
     }
 
     public void sendMessage(String msg) {
-        out.println(msg);
+        outWriter.println(msg);
+    }
+
+    public void sendFile(File file) {
+        try {
+            // Get the size of the file
+            long length = file.length();
+            byte[] bytes = new byte[50 * 1024];
+            InputStream in = new FileInputStream(file);
+            OutputStream out = clientFileSocket.getOutputStream();
+            outWriter.println("wysylamplik123" + file.getName());
+
+            int count;
+            while ((count = in.read(bytes)) > 0) {
+                out.write(bytes, 0, count);
+            }
+
+        }
+        catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public void run() {
         try {
             String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                JOptionPane.showMessageDialog(null, inputLine);
-                out.flush();
+            while ((inputLine = inReader.readLine()) != null) {
+                if(inputLine.contains("wysylamplik123")) {
+                    InputStream in = null;
+                    OutputStream out = null;
+                    System.out.println("Odbieranie pliku");
+
+                    in = clientFileSocket.getInputStream();
+
+                    String name = inputLine.substring(14);
+                    out = new FileOutputStream("E:/" + name);
+
+                    byte[] bytes = new byte[50*1024];
+
+                    int count;
+                    while ((count = in.read(bytes)) > 0) {
+                        out.write(bytes, 0, count);
+                    }
+                    out.close();
+                    in.close();
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, inputLine);
+                    outWriter.flush();
+                }
             }
         }
         catch(Exception e) {

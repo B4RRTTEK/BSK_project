@@ -22,8 +22,10 @@ public class DemoApplication extends  JFrame implements ActionListener {
     private ButtonGroup radioGroup;
     private JButton fileButton;
     private JButton sendButton;
+    private JButton sendFileButton;
     private JTextField textField;
     private static ChatUser user = null;
+    private File lastFile;
 
     public DemoApplication()
     {
@@ -33,28 +35,32 @@ public class DemoApplication extends  JFrame implements ActionListener {
         setTitle("Wysylanie pliku");
         setLayout(null);
 
+        textField = new JTextField("");
+        textField.setBounds(30,20,300,40);
+        add(textField);
+
+        sendButton = new JButton("Wyślij tekst");
+        sendButton.setBounds(30,80,150,20);
+        add(sendButton);
+        sendButton.addActionListener(this);
+
         fileButton = new JButton("Wybierz plik");
         fileButton.setBounds(30,120,150,20);
         add(fileButton);
         fileButton.addActionListener(this);
 
-
-        textField = new JTextField("");
-        textField.setBounds(30,20,300,40);
-        add(textField);
-
-        sendButton = new JButton("Wyślij");
-        sendButton.setBounds(30,80,150,20);
-        add(sendButton);
-        sendButton.addActionListener(this);
+        sendFileButton = new JButton("Wyślij plik");
+        sendFileButton.setBounds(30,140,150,20);
+        add(sendFileButton);
+        sendFileButton.addActionListener(this);
 
         radioGroup=new ButtonGroup();
         JRadioButton radio_ecb = new JRadioButton("ECB",true);
-        radio_ecb.setBounds(50,140,100,20);
+        radio_ecb.setBounds(50,160,100,20);
         JRadioButton radio_cbc = new JRadioButton("CBC",true);
-        radio_cbc.setBounds(50,160,100,20);
+        radio_cbc.setBounds(50,180,100,20);
         JRadioButton radio_cfb = new JRadioButton("CFB",true);
-        radio_cfb.setBounds(50,180,100,20);
+        radio_cfb.setBounds(50,200,100,20);
         radioGroup.add(radio_ecb);
         radioGroup.add(radio_cbc);
         radioGroup.add(radio_cfb);
@@ -76,13 +82,22 @@ public class DemoApplication extends  JFrame implements ActionListener {
         }
 
         if(source == fileButton) {
-            File file;
             Scanner fileIn;
             int response;
             JFileChooser chooser = new JFileChooser(".");
 
             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-            response = chooser.showOpenDialog(null);
+            response = chooser.showOpenDialog(this);
+            if(response == JFileChooser.APPROVE_OPTION) {
+                lastFile = chooser.getSelectedFile();
+                System.out.println("You chose to open this file: " +
+                        chooser.getSelectedFile().getName());
+            }
+        }
+
+        if(source == sendFileButton) {
+            user.sendFile(lastFile);
+            JOptionPane.showMessageDialog(this,"Wysłano plik.");
         }
     }
 
@@ -125,7 +140,7 @@ public class DemoApplication extends  JFrame implements ActionListener {
 
         if(resp.equals("client")) {
             ChatClient client = new ChatClient();
-            client.startConnection("127.0.0.1", 3333);
+            client.startConnection("127.0.0.1", 3333, 3334);
             Thread t = new Thread(client);
             t.start();
             try {
@@ -134,11 +149,10 @@ public class DemoApplication extends  JFrame implements ActionListener {
             catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-            client.sendMessage("test");
             user = client;
         } else if(resp.equals("server")) {
             ChatServer server = new ChatServer();
-            server.start(3333);
+            server.start(3333, 3334);
             Thread t = new Thread(server);
             t.start();
             user = server;

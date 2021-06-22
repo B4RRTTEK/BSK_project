@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
@@ -26,6 +28,7 @@ public class DemoApplication extends  JFrame implements ActionListener {
     private JTextField textField;
     private static ChatUser user = null;
     private File lastFile;
+    private static String key = "F5EBCB74076B9376F14493130F95D7FD";
 
     public DemoApplication()
     {
@@ -96,7 +99,15 @@ public class DemoApplication extends  JFrame implements ActionListener {
         }
 
         if(source == sendFileButton) {
-            user.sendFile(lastFile);
+            File encryptedFile = new File("encrypted" + lastFile.getName());
+
+            try {
+                FileEncrypterDecrypter.encrypt(key, lastFile, encryptedFile);
+            } catch (CryptoException ex) {
+                System.out.println(ex.getMessage());
+                ex.printStackTrace();
+            }
+            user.sendFile(encryptedFile);
             JOptionPane.showMessageDialog(this,"Wysłano plik.");
         }
     }
@@ -139,7 +150,7 @@ public class DemoApplication extends  JFrame implements ActionListener {
         String resp = in.nextLine();
 
         if(resp.equals("client")) {
-            ChatClient client = new ChatClient();
+            ChatClient client = new ChatClient(key);
             client.startConnection("127.0.0.1", 3333, 3334);
             Thread t = new Thread(client);
             t.start();
@@ -151,7 +162,7 @@ public class DemoApplication extends  JFrame implements ActionListener {
             }
             user = client;
         } else if(resp.equals("server")) {
-            ChatServer server = new ChatServer();
+            ChatServer server = new ChatServer(key);
             server.start(3333, 3334);
             Thread t = new Thread(server);
             t.start();
@@ -164,6 +175,19 @@ public class DemoApplication extends  JFrame implements ActionListener {
         okienko.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         okienko.setVisible(true);
         SpringApplication.run(DemoApplication.class, args);
+
+        /*
+        File inputFile = new File("E:\\studia\\sem 6\\BSK\\BSK_project\\New Language Leader Advanced.pdf");
+        File encryptedFile = new File("encrypted.pdf");
+        File decryptedFile = new File("decrypted.pdf");
+
+        try {
+            FileEncrypterDecrypter.encrypt(key, inputFile, encryptedFile);
+            FileEncrypterDecrypter.decrypt(key, encryptedFile, decryptedFile);
+        } catch (CryptoException ex) {
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }*/
     }
 
 }

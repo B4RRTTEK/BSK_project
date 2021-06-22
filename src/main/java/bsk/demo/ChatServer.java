@@ -14,7 +14,11 @@ public class ChatServer implements Runnable, ChatUser{
     private FileInputStream fis = null;
     private BufferedInputStream bis = null;
     private OutputStream os = null;
+    private String key;
 
+    public ChatServer(String key) {
+        this.key = key;
+    }
 
     public void start(int textPort, int filePort) {
         try {
@@ -87,8 +91,11 @@ public class ChatServer implements Runnable, ChatUser{
                     while ((count = in.read(bytes)) > 0) {
                         out.write(bytes, 0, count);
                     }
-                    out.close();
-                    in.close();
+
+                    File encryptedFile = new File("E:/" + name);
+                    File decryptedFile = new File("E:/" + name.substring(9));
+
+                    FileEncrypterDecrypter.decrypt(key, encryptedFile, decryptedFile);
                 }
                 else {
                     JOptionPane.showMessageDialog(null, inputLine);
